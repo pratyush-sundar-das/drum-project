@@ -1,0 +1,93 @@
+package com.example.drumapp.controller;
+
+import com.example.drumapp.model.Patch;
+import com.example.drumapp.model.Pad;
+import com.example.drumapp.repository.PatchRepository;
+
+import jakarta.annotation.PostConstruct;
+
+import com.example.drumapp.repository.PadRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/patches")
+public class PatchController {
+
+    @Autowired
+    private PatchRepository patchRepository;
+
+    @Autowired
+    private PadRepository padRepository;
+
+    // Initialize with sample data
+    @PostConstruct
+    public void init() {
+        if (patchRepository.count() == 0) {
+            Patch patch1 = new Patch("patch1", "Acoustic Kit");
+            patch1.setPads(List.of(
+                new Pad("pad1", List.of("kick_acoustic01.wav", "kick_acoustic02.wav")),
+                new Pad("pad2", List.of("snare_01.wav", "rim_01.wav")),
+                new Pad("pad3", List.of("hihat_acoustic01.wav", "hihat_acoustic02.wav")),
+                new Pad("pad4", List.of("openhats_acoustic01.wav", "openhats_acoustic02.wav")),
+                new Pad("pad5", List.of("tom_01.wav", "tom_02.wav")),
+                new Pad("pad6", List.of("crash-acoustic.wav", "crash-hi808.wav")),
+                new Pad("pad7", List.of("clap_acoustic.wav", "clap_tape.wav")),
+                new Pad("pad8", List.of("perc_hollow.wav", "perc_chirpy.wav"))
+            ));
+            patchRepository.save(patch1);
+
+            Patch patch2 = new Patch("patch2", "Electronic Kit");
+            patch2.setPads(List.of(
+                new Pad("pad1", List.of("kick_808.wav", "kick_deep.wav")),
+                new Pad("pad2", List.of("snare_02.wav", "rim_02.wav")),
+                new Pad("pad3", List.of("hihat_digital.wav", "hihat_electro.wav")),
+                new Pad("pad4", List.of("openhats_analog.wav", "openhats_slick.wav")),
+                new Pad("pad5", List.of("tom_electro.wav", "tom_vinyl01.wav")),
+                new Pad("pad6", List.of("crash_808.wav", "crash-noise.wav")),
+                new Pad("pad7", List.of("clap_808.wav", "clap_fat.wav")),
+                new Pad("pad8", List.of("perc_metal.wav", "perc_nasty.wav"))
+            ));
+            patchRepository.save(patch2);
+
+            // Add patch3, patch4, patch5 similarly (omitted for brevity)
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<String[]> getPatches() {
+        return ResponseEntity.ok(new String[]{"patch1", "patch2", "patch3", "patch4", "patch5"});
+    }
+
+    @GetMapping("/{patchId}/pads")
+    public ResponseEntity<Map<String, String[]>> getPads(@PathVariable String patchId) {
+        Patch patch = patchRepository.findById(patchId).orElse(null);
+        if (patch == null) return ResponseEntity.notFound().build();
+
+        Map<String, String[]> padSounds = new HashMap<>();
+        patch.getPads().forEach(pad -> padSounds.put(pad.getId(), pad.getSoundFiles().toArray(new String[0])));
+        return ResponseEntity.ok(padSounds);
+    }
+
+    @GetMapping("/sounds/{fileName}")
+    public ResponseEntity<Resource> getSound(@PathVariable String fileName) throws MalformedURLException {
+        Path file = Paths.get("src/main/resources/sounds/" + fileName);
+        Resource resource = new UrlResource(file.toUri());
+        return resource.exists() || resource.isReadable() ? ResponseEntity.ok().body(resource) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{patchId}/select")
+    public ResponseEntity<Void> selectPatch(@PathVariable String patchId) {
+        // Logic to set active patch (can be enhanced with session management)
+        return ResponseEntity.ok().build();
+    }
+}

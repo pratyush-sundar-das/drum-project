@@ -1,0 +1,134 @@
+package com.example.drumapp.controller;
+
+import com.example.drumapp.model.Patch;
+import com.example.drumapp.model.Pad;
+import com.example.drumapp.repository.PatchRepository;
+import com.example.drumapp.repository.PadRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.annotation.PostConstruct;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/patches")
+public class PatchController {
+
+    @Autowired
+    private PatchRepository patchRepository;
+
+    @Autowired
+    private PadRepository padRepository;
+
+    @PostConstruct
+    public void init() {
+        if (patchRepository.count() == 0) {
+            // Save all Pads first
+            List<Pad> allPads = new ArrayList<>();
+            // Patch 1: Acoustic Kit
+            allPads.add(new Pad("pad1", List.of("kick_acoustic01.wav", "kick_acoustic02.wav")));
+            allPads.add(new Pad("pad2", List.of("snare_01.wav", "rim_01.wav")));
+            allPads.add(new Pad("pad3", List.of("hihat_acoustic01.wav", "hihat_acoustic02.wav")));
+            allPads.add(new Pad("pad4", List.of("openhats_acoustic01.wav", "openhats_acoustic02.wav")));
+            allPads.add(new Pad("pad5", List.of("tom_01.wav", "tom_02.wav")));
+            allPads.add(new Pad("pad6", List.of("crash-acoustic.wav", "crash-hi808.wav")));
+            allPads.add(new Pad("pad7", List.of("clap_acoustic.wav", "clap_tape.wav")));
+            allPads.add(new Pad("pad8", List.of("perc_hollow.wav", "perc_chirpy.wav")));
+            // Patch 2: Electronic Kit
+            allPads.add(new Pad("pad9", List.of("kick_808.wav", "kick_deep.wav")));
+            allPads.add(new Pad("pad10", List.of("snare_02.wav", "rim_02.wav")));
+            allPads.add(new Pad("pad11", List.of("hihat_digital.wav", "hihat_electro.wav")));
+            allPads.add(new Pad("pad12", List.of("openhats_analog.wav", "openhats_slick.wav")));
+            allPads.add(new Pad("pad13", List.of("tom_electro.wav", "tom_vinyl01.wav")));
+            allPads.add(new Pad("pad14", List.of("crash_808.wav", "crash-noise.wav")));
+            allPads.add(new Pad("pad15", List.of("clap_808.wav", "clap_fat.wav")));
+            allPads.add(new Pad("pad16", List.of("perc_metal.wav", "perc_nasty.wav")));
+            // Patch 3: Hip-Hop Kit
+            allPads.add(new Pad("pad17", List.of("kick_big.wav", "kick_heavy.wav")));
+            allPads.add(new Pad("pad18", List.of("snare_roll.wav", "rim_hiss.wav")));
+            allPads.add(new Pad("pad19", List.of("hihat_tight.wav", "hihat_loose.wav")));
+            allPads.add(new Pad("pad20", List.of("openhats_tight.wav", "openhats_sight.wav")));
+            allPads.add(new Pad("pad21", List.of("tom_low.wav", "tom_floor.wav")));
+            allPads.add(new Pad("pad22", List.of("crash-plain.wav", "crash-tape.wav")));
+            allPads.add(new Pad("pad23", List.of("clap_sapper.wav", "clap_flapper.wav")));
+            allPads.add(new Pad("pad24", List.of("perc_laser.wav", "perc_short.wav")));
+            // Patch 4: World Percussion
+            allPads.add(new Pad("pad25", List.of("kick_oldskool.wav", "kick_plain.wav")));
+            allPads.add(new Pad("pad26", List.of("snare_acoustic.wav", "rim_reso.wav")));
+            allPads.add(new Pad("pad27", List.of("hihat_hiss.wav", "hihat_ring.wav")));
+            allPads.add(new Pad("pad28", List.of("openhats_tight.wav", "openhats_sight.wav")));
+            allPads.add(new Pad("pad29", List.of("tom_high.wav", "tom_mid.wav")));
+            allPads.add(new Pad("pad30", List.of("crash-acoustic.wav", "crash-noise.wav")));
+            allPads.add(new Pad("pad31", List.of("clap_acoustic.wav", "clap_tape.wav")));
+            allPads.add(new Pad("pad32", List.of("perc_tambo.wav", "perc_vibro.wav")));
+            // Patch 5: Custom Mix
+            allPads.add(new Pad("pad33", List.of("kick_cultivator.wav", "kick_dry.wav")));
+            allPads.add(new Pad("pad34", List.of("snare_03.wav", "rim_hiss.wav")));
+            allPads.add(new Pad("pad35", List.of("hihat_electro.wav", "hihat_digital.wav")));
+            allPads.add(new Pad("pad36", List.of("openhats_analog.wav", "openhats_slick.wav")));
+            allPads.add(new Pad("pad37", List.of("tom_vinyl02.wav", "tom_floor.wav")));
+            allPads.add(new Pad("pad38", List.of("crash-hi808.wav", "crash-tape.wav")));
+            allPads.add(new Pad("pad39", List.of("clap_fat.wav", "clap_sapper.wav")));
+            allPads.add(new Pad("pad40", List.of("perc_nasty.wav", "perc_laser.wav")));
+
+            padRepository.saveAll(allPads);
+
+            // Create and save Patches
+            Patch patch1 = new Patch("patch1", "Acoustic Kit");
+            patch1.setPads(allPads.subList(0, 8));
+            patchRepository.save(patch1);
+
+            Patch patch2 = new Patch("patch2", "Electronic Kit");
+            patch2.setPads(allPads.subList(8, 16));
+            patchRepository.save(patch2);
+
+            Patch patch3 = new Patch("patch3", "Hip-Hop Kit");
+            patch3.setPads(allPads.subList(16, 24));
+            patchRepository.save(patch3);
+
+            Patch patch4 = new Patch("patch4", "World Percussion");
+            patch4.setPads(allPads.subList(24, 32));
+            patchRepository.save(patch4);
+
+            Patch patch5 = new Patch("patch5", "Custom Mix");
+            patch5.setPads(allPads.subList(32, 40));
+            patchRepository.save(patch5);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<String[]> getPatches() {
+        return ResponseEntity.ok(new String[]{"patch1", "patch2", "patch3", "patch4", "patch5"});
+    }
+
+    @GetMapping("/{patchId}/pads")
+    public ResponseEntity<Map<String, String[]>> getPads(@PathVariable String patchId) {
+        Patch patch = patchRepository.findById(patchId).orElse(null);
+        if (patch == null) return ResponseEntity.notFound().build();
+
+        Map<String, String[]> padSounds = new HashMap<>();
+        patch.getPads().forEach(pad -> padSounds.put(pad.getId(), pad.getSoundFiles().toArray(new String[0])));
+        return ResponseEntity.ok(padSounds);
+    }
+
+    @GetMapping("/sounds/{fileName}")
+    public ResponseEntity<Resource> getSound(@PathVariable String fileName) throws MalformedURLException {
+        Path file = Paths.get("src/main/resources/sounds/" + fileName);
+        Resource resource = new UrlResource(file.toUri());
+        return resource.exists() || resource.isReadable() ? ResponseEntity.ok().body(resource) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{patchId}/select")
+    public ResponseEntity<Void> selectPatch(@PathVariable String patchId) {
+        return ResponseEntity.ok().build();
+    }
+}

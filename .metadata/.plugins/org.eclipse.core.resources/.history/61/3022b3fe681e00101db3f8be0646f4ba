@@ -1,0 +1,90 @@
+package com.example.drumapp.controller;
+
+import com.example.drumapp.model.Patch;
+import com.example.drumapp.model.Pad;
+import com.example.drumapp.repository.PatchRepository;
+import com.example.drumapp.repository.PadRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.annotation.PostConstruct;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/patches")
+public class PatchController {
+
+    @Autowired
+    private PatchRepository patchRepository;
+
+    @Autowired
+    private PadRepository padRepository;
+
+    @PostConstruct
+    public void init() {
+        if (patchRepository.count() == 0) {
+            // Save Pads first
+            List<Pad> allPads = new ArrayList<>();
+            allPads.add(new Pad("pad1", List.of("kick_acoustic01.wav", "kick_acoustic02.wav")));
+            allPads.add(new Pad("pad2", List.of("snare_01.wav", "rim_01.wav")));
+            allPads.add(new Pad("pad3", List.of("hihat_acoustic01.wav", "hihat_acoustic02.wav")));
+            allPads.add(new Pad("pad4", List.of("openhats_acoustic01.wav", "openhats_acoustic02.wav")));
+            allPads.add(new Pad("pad5", List.of("tom_01.wav", "tom_02.wav")));
+            allPads.add(new Pad("pad6", List.of("crash-acoustic.wav", "crash-hi808.wav")));
+            allPads.add(new Pad("pad7", List.of("clap_acoustic.wav", "clap_tape.wav")));
+            allPads.add(new Pad("pad8", List.of("perc_hollow.wav", "perc_chirpy.wav")));
+            // Add more pads for other patches (e.g., patch2–patch5)
+            allPads.add(new Pad("pad9", List.of("kick_808.wav", "kick_deep.wav")));
+            // ... (add all 40 pads for 5 patches)
+            padRepository.saveAll(allPads);
+
+            // Create and save Patch1 with existing Pads
+            Patch patch1 = new Patch("patch1", "Acoustic Kit");
+            patch1.setPads(allPads.subList(0, 8)); // First 8 pads
+            patchRepository.save(patch1);
+
+            // Create and save Patch2 with next 8 pads
+            Patch patch2 = new Patch("patch2", "Electronic Kit");
+            patch2.setPads(allPads.subList(8, 16)); // Next 8 pads (example)
+            patchRepository.save(patch2);
+
+            // Add patch3, patch4, patch5 similarly (adjust subList indices)
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<String[]> getPatches() {
+        return ResponseEntity.ok(new String[]{"patch1", "patch2", "patch3", "patch4", "patch5"});
+    }
+
+    @GetMapping("/{patchId}/pads")
+    public ResponseEntity<Map<String, String[]>> getPads(@PathVariable String patchId) {
+        Patch patch = patchRepository.findById(patchId).orElse(null);
+        if (patch == null) return ResponseEntity.notFound().build();
+
+        Map<String, String[]> padSounds = new HashMap<>();
+        patch.getPads().forEach(pad -> padSounds.put(pad.getId(), pad.getSoundFiles().toArray(new String[0])));
+        return ResponseEntity.ok(padSounds);
+    }
+
+    @GetMapping("/sounds/{fileName}")
+    public ResponseEntity<Resource> getSound(@PathVariable String fileName) throws MalformedURLException {
+        Path file = Paths.get("src/main/resources/sounds/" + fileName);
+        Resource resource = new UrlResource(file.toUri());
+        return resource.exists() || resource.isReadable() ? ResponseEntity.ok().body(resource) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{patchId}/select")
+    public ResponseEntity<Void> selectPatch(@PathVariable String patchId) {
+        return ResponseEntity.ok().build();
+    }
+}

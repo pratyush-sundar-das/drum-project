@@ -1,0 +1,26 @@
+package com.example.drumapp.model;
+
+
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
+public class Pad {
+    @Id
+    private String id;
+    private List<String> soundFiles; // Original file names like "kick_01.wav"
+
+    // Getters, setters, constructors
+    public Pad() {}
+    public Pad(String id, List<String> soundFiles) {
+        this.id = id;
+        this.soundFiles = soundFiles;
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public List<String> getSoundFiles() { return soundFiles; }
+    public void setSoundFiles(List<String> soundFiles) { this.soundFiles = soundFiles; }
+}

@@ -1,0 +1,30 @@
+package com.example.drumapp.model;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import java.util.List;
+
+@Entity
+public class Patch {
+    @Id
+    private String id;
+    private String name;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Pad> pads;
+
+    // Getters, setters, constructors
+    public Patch() {}
+    public Patch(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public List<Pad> getPads() { return pads; }
+    public void setPads(List<Pad> pads) { this.pads = pads; }
+}

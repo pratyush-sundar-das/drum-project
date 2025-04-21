@@ -1,0 +1,5 @@
+package com.example.drumapp.config;
+
+public class WebConfig {
+
+}
